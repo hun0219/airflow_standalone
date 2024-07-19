@@ -1,0 +1,4 @@
+{
+    "CHECK_SH": "/home/hun/airflow/dags/check.py",
+    "MY_NAME": "save"
+}
