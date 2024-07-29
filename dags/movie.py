@@ -14,6 +14,7 @@ from airflow.operators.python import (
     PythonOperator,
     PythonVirtualenvOperator,
     is_venv_installed,
+    PythonVirtualenvOperator,
 )
 
 with DAG(
@@ -78,9 +79,11 @@ with DAG(
 #                exit 1
 #            fi
 #    )
-    task_gat_data = PythonOperator(
+    task_gat_data = PythonVirtualenvOperator(
             task_id="gat_data",
-            python_callable=get_data
+            python_callable=get_data,
+            requirements=["git+https://github.com/hun0219/mov.git@0.2.0/api"],
+            system_site_packages=False,
             )
 
     task_save_data = BashOperator(
