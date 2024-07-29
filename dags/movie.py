@@ -7,6 +7,7 @@ from airflow import DAG
 # Operators; we need this to operate!
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
+from airflow.models import Variable
 
 with DAG(
     'movie',
@@ -17,9 +18,9 @@ with DAG(
         'retries': 1,
         'retry_delay': timedelta(seconds=3)
     },
-    description='import db',
+    description='move',
     schedule="10 2 * * *",
-    start_data=datetime(2024, 7, 24),
+    start_date=datetime(2024, 7, 24),
     catchup=True,
     tags=['movie', 'api'],
 ) as dag:
