@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from textwrap import dedent
-
+from pprint import pprint
 # The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
 
@@ -8,6 +8,13 @@ from airflow import DAG
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
 from airflow.models import Variable
+
+from airflow.operators.python import (
+    ExternalPythonOperator,
+    PythonOperator,
+    PythonVirtualenvOperator,
+    is_venv_installed,
+)
 
 with DAG(
     'movie',
@@ -26,7 +33,34 @@ with DAG(
 ) as dag:
 
 
+    def get_data(ds, **kwargs):
+        print(ds)
+        print(kwargs)
+        print("=" * 20)
+        print(f"ds_nodash =>{kwargs['ds_nodash']}")
+        print(f"kwargs type => {type(kwargs)}")
+        print("=" * 20)
+        from mov.api.call import get_key, save2df
+        key = get_key()
+        print(f"MOVIE_API_KET => {key}")
+        YYYYMMDD = kwargs['ds_nodash'] #20240724
+        df = save2df(YYYYMMDD)
 
+    def print_context(ds=None, **kwargs):
+        """Print the Airflow context and ds variable from the context."""
+        print("::group::All kwargs")
+        pprint(kwargs)
+        print(kwargs)
+        print("::endgroup::")
+        print("::group::Context variable ds")
+        print(ds)
+        print("::endgroup::")
+        return "Whatever you return gets printed in the logs"
+
+
+    run_this = PythonOperator(
+            task_id="print_the_context", 
+            python_callable=print_context)
 
 #    task_check = BashOperator(
 #            task_id="check",
@@ -44,17 +78,15 @@ with DAG(
 #                exit 1
 #            fi
 #    )
-    task_gat_data = BashOperator(
-            task_id="gat.data",
-            bash_command="""
-                ehco "gat.data"
-            """
+    task_gat_data = PythonOperator(
+            task_id="gat_data",
+            python_callable=get_data
             )
 
     task_save_data = BashOperator(
-            task_id="save.data",
+            task_id="save_data",
             bash_command="""
-                ehco "save.data"
+                echo "save.data"
             """
             )
 
@@ -62,6 +94,5 @@ with DAG(
     task_start = EmptyOperator(task_id='start')
     task_end = EmptyOperator(task_id='end', trigger_rule="all_done")
 
-    task_start >> task_gat_data >> task_save_data
-    task_save_data >> task_end
-
+    task_start >> task_gat_data >> task_save_data >> task_end
+    task_start >> run_this >> task_end
