@@ -24,9 +24,13 @@ with DAG(
     # You can override them on a per-task basis during operator initialization
     default_args={
         'depends_on_past': False,
+        'email_on_failure': False,
+        'email_on_retry': False,
         'retries': 1,
-        'retry_delay': timedelta(seconds=3)
+        'retry_delay': timedelta(seconds=3),
     },
+    max_active_tasks=3,
+    max_active_runs=1,
     description='move',
     schedule="10 2 * * *",
     start_date=datetime(2024, 7, 24),
@@ -163,9 +167,18 @@ with DAG(
             bash_command="echo 'task'"
             )
 
+    get_data_start = BashOperator(
+            task_id='get.'
+
 
     task_start = EmptyOperator(task_id='start')
     task_end = EmptyOperator(task_id='end', trigger_rule="all_done")
+
+    multi_y = EmptyOperator(task_id='multi.y') # 다양성 영화 유무
+    multi_n = EmptyOperator(task_id='multi.n')
+    nation_k = EmptyOperator(task_id='nation_k') # 한국외국영화
+    nation_f = EmptyOperator(task_id='nation_f')
+    
     task_join = BashOperator(
             task_id='task.join',
             bash_command="exit 1",
@@ -177,14 +190,15 @@ with DAG(
     task_start >> branch_op
     task_start >> task_join >> task_save_data
 
-    branch_op >> rm_dir >> task_get_data
+    branch_op >> rm_dir >> [task_get_data, multi_y, multi_n, nation_k, nation_f]
     branch_op >> echo_task >> task_save_data
-    branch_op >> task_get_data
-    
+    branch_op >> [task_get_data, multi_y, multi_n, nation_k, nation_f]
+
+    [task_get_data, multi_y, multi_n, nation_k, nation_f] >> task_save_data
+    task_save_data >> task_end
 #    rm_dir >> task_join
 #    echo_task >> task_join
 
 #    task_join >> task_get_data
     
 
-    task_get_data >> task_save_data >> task_end
