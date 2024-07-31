@@ -93,9 +93,9 @@ with DAG(
         path = f'{home_dir}/tmp/test_parquet/load_dt={ds_nodash}'
         #path = os.path.join(home_dir, f"tmp/test_parquet/load_dt={ld}")
         if os.path.exists(path):
-            return "rm.dir" #task_id
+            return "rm.dir" #task_id #rm_dor.task_id 도 가능
         else:
-            return "get.data", "echo.task" #task_id
+            return "get.start", "echo.task" #task_id
 
 
     branch_op = BranchPythonOperator(
@@ -130,7 +130,7 @@ with DAG(
             requirements=["git+https://github.com/hun0219/mov.git@0.3.0/api"],
             system_site_packages=False,
             #trigger_rule="none_failed"
-            trigger_rule="all_done",
+            trigger_rule="all_success",
             #venv_cache_path="/home/hun/tmp2/airflow_venv/get_data"
             # venv_cache_path 물결 작동안함 풀패스, 디폴트는 지정 X아니면 none
             )
@@ -167,9 +167,6 @@ with DAG(
             bash_command="echo 'task'"
             )
 
-    get_data_start = BashOperator(
-            task_id='get.'
-
 
     task_start = EmptyOperator(task_id='start')
     task_end = EmptyOperator(task_id='end', trigger_rule="all_done")
@@ -177,28 +174,31 @@ with DAG(
     multi_y = EmptyOperator(task_id='multi.y') # 다양성 영화 유무
     multi_n = EmptyOperator(task_id='multi.n')
     nation_k = EmptyOperator(task_id='nation_k') # 한국외국영화
-    nation_f = EmptyOperator(task_id='nation_f')
+    nation_f = EmptyOperator(task_id='nation_f')   
     
-    task_join = BashOperator(
-            task_id='task.join',
+    get_start = EmptyOperator(task_id='get.start', trigger_rule="all_done")
+    get_end = EmptyOperator(task_id='get.end', trigger_rule="all_done")
+
+    throw_err = BashOperator(
+            task_id='throw.err',
             bash_command="exit 1",
             trigger_rule="all_done"
             )
-
-
+##################################################################    
 
     task_start >> branch_op
-    task_start >> task_join >> task_save_data
+    task_start >> throw_err >> task_save_data
 
-    branch_op >> rm_dir >> [task_get_data, multi_y, multi_n, nation_k, nation_f]
-    branch_op >> echo_task >> task_save_data
-    branch_op >> [task_get_data, multi_y, multi_n, nation_k, nation_f]
+    branch_op >> [rm_dir, echo_task] >> get_start
+    branch_op >> get_start
 
-    [task_get_data, multi_y, multi_n, nation_k, nation_f] >> task_save_data
-    task_save_data >> task_end
-#    rm_dir >> task_join
-#    echo_task >> task_join
+    get_start >> [task_get_data, multi_y, multi_n, nation_k, nation_f]
+    [task_get_data, multi_y, multi_n, nation_k, nation_f] >> get_end
 
-#    task_join >> task_get_data
+    get_end >> task_save_data >> task_end
+
+#    rm_dir >> throw_err
+#    echo_task >> throw_err
+#    throw_err >> task_get_data
     
 
