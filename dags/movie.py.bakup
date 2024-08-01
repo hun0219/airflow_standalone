@@ -26,7 +26,7 @@ with DAG(
         'depends_on_past': False,
         'email_on_failure': False,
         'email_on_retry': False,
-        'retries': 1, #태스크가 실패했을때 다시시도 횟수
+        'retries': 1,
         'retry_delay': timedelta(seconds=3),
     },
     max_active_tasks=3,
@@ -38,19 +38,42 @@ with DAG(
     tags=['movie', 'api', 'amt'],
 ) as dag:
 
- 
-    def common_get_data(ds_nodash, arg1):
+
+#    def get_data(ds_nodash):
+#        #print(ds_nodash)
+#        #print(kwargs)
+#        #print("=" * 20)
+#        #print(f"ds_nodash =>{kwargs['ds_nodash']}")
+#        #print(f"kwargs type => {type(kwargs)}")
+#        #print("=" * 20)
+#        from mov.api.call import save2df
+#        #key = get_key()
+#        #print(f"MOVIE_API_KET => {key}")
+#        #YYYYMMDD = kwargs['ds_nodash'] #20240724
+#        df = save2df(ds_nodash)
+#        print(df.head(5))
+#
+#
+#    def fun_movie(arg1, ds_nodash):
+#        from mov.api.call import save2df
+#        #p = {"multiMovieYn":"Y", "multiMovieYn":"N", 
+#        #    "repNationCd":"K", "repNationCd":"F"}
+#        df = save2df(load_dt=ds_nodash, url_param=arg1)
+#        print(df.head(5))
+#
+    
+    def common_get_data(ds_nodash, url_param):
     #def common_get_data(ds_nodash, {"mult_4key":"Y}):
         from mov.api.call import save2df
-        df = save2df(load_dt=ds_nodash, url_param=arg1)
-        print(arg1)
+        df = save2df(load_dt=ds_nodash, url_param=url_param)
+
         print(df[['movieCd', 'movieNm']].head(5))
 
-        for key, value in arg1.items():
+        for key, value in url_param.items():
             df[key] = value
             
         #p_cols = list(url_param.keys()).insert(0, 'load_dt')
-        p_cols = ['load_dt'] + list(arg1.keys())
+        p_cols = ['load_dt'] + list(url_param.keys())
         df.to_parquet('~/tmp/test_parquet', 
                 partition_cols=p_cols
                 # partition_cols=['load_dt', 'movieKey']
@@ -71,6 +94,23 @@ with DAG(
         sum_df = g.agg({'audiAcc':'sum'}).reset_index()
         print(sum_df)
 
+        #key = get_key()
+        #print( "*" * 33)
+        #print(key)
+        #msg = echo("hello")
+        #print(msg)
+        #print( "*" * 33)
+
+#    def print_context(ds=None, **kwargs):
+#        """Print the Airflow context and ds variable from the context."""
+#        print("::group::All kwargs")
+#        pprint(kwargs)
+#        print(kwargs)
+#        print("::endgroup::")
+#        print("::group::Context variable ds")
+#        print(ds)
+#        print("::endgroup::")
+#        return "Whatever you return gets printed in the logs"
 
     def branch_fun(ds_nodash):
         #ld = kwargs['ds_nodash']
@@ -90,6 +130,37 @@ with DAG(
             python_callable=branch_fun
             )
 
+#    run_this = PythonOperator(
+#            task_id="print_the_context", 
+#            python_callable=print_context
+#            )
+
+#    task_check = BashOperator(
+#            task_id="check",
+#            bash_command="bash {{ var.value.CHECK_SH }} {{ds_nodash}}"
+#            echo "check"
+#            DONE_PATH=~/data/done/{{ds_nodash}}
+#            DONE_PATH_FILE="${DONE_PATH}/_DONE"
+#
+#            #파일 존재 여부 확인
+#            if [ -e "$DONE_PATH_FILE" ]; then
+#                figlet "Let's move on"
+#                exit 0
+#            else
+#                echo "I'll be back => $DONE_PATH_FILE"
+#                exit 1
+#            fi
+#    )
+#    task_get_data = PythonVirtualenvOperator(
+#            task_id='get.data',
+#            python_callable=get_data,
+#            requirements=["git+https://github.com/hun0219/mov.git@0.3.0/api"],
+#            system_site_packages=False,
+#            #trigger_rule="none_failed"
+#            trigger_rule="all_success",
+#            #venv_cache_path="/home/hun/tmp2/airflow_venv/get_data"
+#            # venv_cache_path 물결 작동안함 풀패스, 디폴트는 지정 X아니면 none
+#            )
 ##trigger_rule = 'none_failed_min_one_success' 실패없이 둘중하나만 되면 OK
 
     task_save_data = PythonVirtualenvOperator(
