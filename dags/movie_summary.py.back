@@ -1,0 +1,97 @@
+from datetime import datetime, timedelta
+from textwrap import dedent
+from pprint import pprint
+
+# The DAG object; we'll need this to instantiate a DAG
+from airflow import DAG
+
+# Operators; we need this to operate!
+from airflow.operators.bash import BashOperator
+from airflow.operators.dummy import DummyOperator
+from airflow.operators.empty import EmptyOperator
+from airflow.models import Variable
+
+from airflow.operators.python import (
+    ExternalPythonOperator,
+    PythonOperator,
+    PythonVirtualenvOperator,
+    is_venv_installed,
+    PythonVirtualenvOperator,
+    BranchPythonOperator,
+)
+
+with DAG(
+    'movie_summary',
+    # These args will get passed on to each operator
+    # You can override them on a per-task basis during operator initialization
+    default_args={
+        'depends_on_past': False,
+        'email_on_failure': False,
+        'email_on_retry': False,
+        'retries': 1,
+        'retry_delay': timedelta(seconds=3)
+    },
+    max_active_tasks=3,
+    max_active_runs=1,
+    description='move',
+    schedule="10 4 * * *",
+    start_date=datetime(2024, 7, 24),
+    catchup=True,
+    tags=['movie', 'api', 'amt', 'summary'],
+) as dag:
+    REQUIREMENTS=["git+https://github.com/hun0219/mov.git@0.3.0/api"]
+
+
+
+    def gen_empty(*ids):
+        #def gen_empty(id):
+        tasks = [] #튜플() <- 은 변경이 어려움, list사용
+        for id in ids: #튜플을 리스트 돌면서 생성
+            task = EmptyOperator(task_id=id)
+            tasks.append(task)
+        return tuple(tasks) #튜플(t, ) 리턴
+
+    #def gen_vpython(od, op_kw, fname):
+    def gen_vpython(**kw):
+        # {'abc' : app~~ , aaa : {key : value}}
+        id = kw['abc']
+        op_kw = kw['aaa'] # aaa에 key:value딕셔너리 형태로 저장 -> op_kw에 저장
+        task = PythonVirtualenvOperator(
+            task_id=id,
+            python_callable=pro_data,
+            system_site_packages=False,
+            requirements=REQUIREMENTS,
+            op_kwargs=op_kw, # opkw -> opkwargs파라미터에 저장
+            )
+        return task
+
+
+    #def pro_data(ds_nodash, arg1):
+    def pro_data(ds_nodash, **params): #키워드 아규먼트 전체 받는거(**params)
+        # kwargs -> {ds_nodash : 240712} <- op_kw 키 벨류 들어가
+        # {ds_no~~ : 20521, aaa : {key: value}}
+        # params안에 opkwargs 값 있음 param 안에 aaa 키호출 가능
+        print(f"{ds_nodash}")
+        print(f"{params['key']}")
+        print(f"{params}")
+        #print(f"{params['arg1']}")
+        #print(f"{params['abc']}, {type(params['abc'])}")
+        print("pro data")
+    
+    
+    start, end = gen_empty('start', 'end')
+    
+    apply_type = gen_vpython(abc='apply.type', aaa={'key':'value'})
+    merge_df = gen_empty('merge.df')[0]
+    de_dup = gen_empty('de.dup')[0]
+
+    summary_df = gen_empty('summary.df')
+
+
+    #start = EmptyOperator(task_id='start')
+    #end = EmptyOperator(task_id='end', trigger_rule="all_done")
+
+##################################################################
+
+    start >> apply_type >> merge_df >> de_dup >> summary_df >> end
+
