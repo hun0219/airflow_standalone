@@ -1,6 +1,7 @@
 ![image](https://github.com/user-attachments/assets/6acbf4b8-394d-49a3-945d-6c652b3e6987)
 
-## DAG: import_db
+## import 파이프라인
+### DAG: import_DB
 ![image](https://github.com/user-attachments/assets/b393a788-5e30-49e4-bfc9-c0ebbe94a299)
 - 매일 주기로 자동 실행
 - 과거 날짜 데이터 처리를 위해 catchup=True 설정
