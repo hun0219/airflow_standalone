@@ -35,7 +35,7 @@ with DAG(
     max_active_runs=1,
     description='move',
     schedule="10 4 * * *",
-    start_date=datetime(2024, 7, 24),
+    start_date=datetime(2025, 5, 19),
     catchup=True,
     tags=['movie', 'api', 'amt', 'summary'],
 ) as dag:

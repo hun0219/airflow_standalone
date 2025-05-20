@@ -26,7 +26,7 @@ with DAG(
     max_active_tasks=2,
     description='parquet db',
     schedule_interval=timedelta(days=1),
-    start_date=datetime(2024, 7, 10),
+    start_date=datetime(2025, 5, 19),
     catchup=True,
     tags=['parquet', 'make parquet'],
 ) as dag:

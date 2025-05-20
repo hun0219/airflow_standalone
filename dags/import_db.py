@@ -18,7 +18,7 @@ with DAG(
     },
     description='import db',
     schedule_interval=timedelta(days=1),
-    start_date=datetime(2024, 7, 10),
+    start_date=datetime(2025, 5, 19),
     catchup=True,
     tags=['import', 'db', 'import db'],
 ) as dag:

@@ -20,7 +20,7 @@ with DAG(
     },
     description='hello world DAG',
     schedule_interval=timedelta(days=1),
-    start_date=datetime(2024, 7, 10),
+    start_date=datetime(2025, 5, 19),
     catchup=True,
     tags=['helloworld'],
 ) as dag:

@@ -20,7 +20,7 @@ with DAG(
 #    schedule_interval=timedelta(days=1),
 # 스케줄 DAG 초기 시간으로 시작/ 분 시 일 월 요일 
     schedule="10 4 * * *",
-    start_date=datetime(2024, 7, 10),
+    start_date=datetime(2025, 5, 19),
     catchup=True,
     tags=['simple', 'bash', 'etl', 'shop'],
 ) as dag:
