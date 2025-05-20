@@ -59,6 +59,24 @@ openDt 기준으로 누적 관객 수 audiAcc 집계
 &nbsp;&nbsp; 지정된 날짜의 parquet 파일 읽고, 숫자형 컬럼 변환<br>
 **req2df, list2df** <br>
 &nbsp;&nbsp; KOBIS API 호출 → JSON → 리스트 → DataFrame<br>
+#### 함수별 상세 설명 mov/api/call.py
+- `save2df(load_dt, url_param)`
+  - 📥 KOBIS API 요청 → JSON 응답 → DataFrame 변환
+  - `load_dt` 컬럼 추가하여 반환 (파일 저장은 DAG 내부에서 처리)
+- `apply_type2df(load_dt, path)`
+  - 📊 저장된 parquet 파일을 읽고, 문자열 숫자 컬럼들을 모두 `int/float`로 변환하여 반환
+- `list2df(load_dt, url_param)`
+  - 🔁 `req2df()` 결과 리스트를 `DataFrame`으로 변환하여 반환
+- `req2df(load_dt, url_param)`
+  - 🔽 API JSON 응답에서 `['boxOfficeResult']['dailyBoxOfficeList']` 리스트만 추출
+- `req(load_dt, url_param)`
+  - 🌐 `gen_url()`로 생성된 URL로 HTTP 요청
+  - 응답 코드와 JSON 데이터를 반환
+- `gen_url(load_dt, url_param)`
+  - 🔧 KOBIS API 요청 URL 생성
+  - 기본 파라미터 `targetDt` 외에도 `multiMovieYn`, `repNationCd` 등 쿼리 인자 추가 가능
+- `get_key()`
+  - 🔐 환경변수 `MOVIE_API_KEY`에서 API 키를 읽어옴
 
 #### .parquet
 <img src="https://github.com/user-attachments/assets/a0eff9a5-7a2a-4699-9421-2ebe80c882d9" width="500"/>
