@@ -82,10 +82,9 @@ openDt 기준으로 누적 관객 수 audiAcc 집계
 <img src="https://github.com/user-attachments/assets/a0eff9a5-7a2a-4699-9421-2ebe80c882d9" width="500"/>
 <img src="https://github.com/user-attachments/assets/c86fedd7-3f9b-4b13-94ab-d2b433a2c73a" width="1000"/>
 
-
-
-----------------------------------------------------------------------------------------------------------------------------------------
-
+---
+&nbsp;
+&nbsp;
 ## import 파이프라인
 ### branch: 240719/2CSV
 ### DAG: import_DB
